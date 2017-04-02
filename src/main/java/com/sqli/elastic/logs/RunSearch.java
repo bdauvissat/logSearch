@@ -1,6 +1,5 @@
 package com.sqli.elastic.logs;
 
-import com.sqli.elastic.logs.controller.LogController;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

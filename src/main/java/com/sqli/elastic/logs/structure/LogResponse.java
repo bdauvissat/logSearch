@@ -6,9 +6,12 @@ import java.util.Date;
  * Created by Benjamin on 22/01/2017.
  */
 public class LogResponse {
-    private final long id;
-    private final String message;
-    private final Date date;
+    private long id;
+    private String message;
+    private Date date;
+
+    public LogResponse() {
+    }
 
     public LogResponse(long id, String message, Date date) {
         this.id = id;
@@ -26,5 +29,17 @@ public class LogResponse {
 
     public Date getDate() {
         return date;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }

@@ -20,7 +20,7 @@ public class LogService {
     }
 
     public List<LogResponse> giveLogList() {
-        listLogs.add(new LogResponse(1l, "Coucou", new Date()));
+        listLogs.add(new LogResponse("1", "Coucou", new Date()));
         return listLogs;
     }
 }

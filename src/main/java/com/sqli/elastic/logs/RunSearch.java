@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class RunSearch {
 
     public static void main(String[] args) {
+        // Launching the SpringBoot application
         SpringApplication.run(RunSearch.class, args);
     }
 

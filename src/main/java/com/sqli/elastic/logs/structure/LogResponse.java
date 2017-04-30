@@ -1,66 +1,59 @@
 package com.sqli.elastic.logs.structure;
 
-import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Created by Benjamin on 22/01/2017.
  */
+@JsonIgnoreProperties( ignoreUnknown = true )
 public class LogResponse {
+
+    private LocalDateTime timestamp;
     private String id;
-    private String message;
-    private Date dateHeure;
-    private String logLevel;
+    private String index;
     private String host;
+    private String logdatetime;
+    private String logeventdatetime;
+    private String logmessage;
+    private String logoutputname;
     private String path;
-    private String server;
-    private String exit;
     private String type;
+
 
     public LogResponse() {
     }
 
-    public LogResponse(String id, String message, Date dateHeure, String logLevel, String host, String path, String server, String exit, String type) {
-        this.id = id;
-        this.message = message;
-        this.dateHeure = dateHeure;
-        this.logLevel = logLevel;
-        this.host = host;
-        this.path = path;
-        this.server = server;
-        this.exit = exit;
-        this.type = type;
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        setTimestamp(LocalDateTime.parse(timestamp, formatter));
     }
 
     public String getId() {
         return id;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public Date getDateHeure() {
-        return dateHeure;
-    }
-
     public void setId(String id) {
         this.id = id;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public String getIndex() {
+        return index;
     }
 
-    public void setDateHeure(Date dateHeure) {
-        this.dateHeure = dateHeure;
-    }
-
-    public String getLogLevel() {
-        return logLevel;
-    }
-
-    public void setLogLevel(String logLevel) {
-        this.logLevel = logLevel;
+    public void setIndex(String index) {
+        this.index = index;
     }
 
     public String getHost() {
@@ -71,28 +64,44 @@ public class LogResponse {
         this.host = host;
     }
 
+    public String getLogdatetime() {
+        return logdatetime;
+    }
+
+    public void setLogdatetime(String logdatetime) {
+        this.logdatetime = logdatetime;
+    }
+
+    public String getLogeventdatetime() {
+        return logeventdatetime;
+    }
+
+    public void setLogeventdatetime(String logeventdatetime) {
+        this.logeventdatetime = logeventdatetime;
+    }
+
+    public String getLogmessage() {
+        return logmessage;
+    }
+
+    public void setLogmessage(String logmessage) {
+        this.logmessage = logmessage;
+    }
+
+    public String getLogoutputname() {
+        return logoutputname;
+    }
+
+    public void setLogoutputname(String logoutputname) {
+        this.logoutputname = logoutputname;
+    }
+
     public String getPath() {
         return path;
     }
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public String getServer() {
-        return server;
-    }
-
-    public void setServer(String server) {
-        this.server = server;
-    }
-
-    public String getExit() {
-        return exit;
-    }
-
-    public void setExit(String exit) {
-        this.exit = exit;
     }
 
     public String getType() {

@@ -1,5 +1,7 @@
 package com.sqli.elastic.logs.structure;
 
+import org.elasticsearch.client.transport.TransportClient;
+
 import java.util.List;
 
 /**
@@ -9,7 +11,7 @@ public class Connection {
 
     private String server;
     private Integer port;
-    private List<String> indexes;
+    private TransportClient tc;
 
     public String getServer() {
         return server;
@@ -27,11 +29,11 @@ public class Connection {
         this.port = port;
     }
 
-    public List<String> getIndexes() {
-        return indexes;
+    public TransportClient getTc() {
+        return tc;
     }
 
-    public void setIndexes(List<String> indexes) {
-        this.indexes = indexes;
+    public void setTc(TransportClient tc) {
+        this.tc = tc;
     }
 }

@@ -1,23 +1,26 @@
 package com.sqli.elastic.logs.service;
 
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sqli.elastic.logs.structure.Connection;
 import com.sqli.elastic.logs.structure.LogResponse;
-import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.*;
 
 /**
  * Created by Benjamin on 18/04/2017.
@@ -32,8 +35,21 @@ public class LogService {
         return listLogs.size();
     }
 
-    public List<LogResponse> giveLogList() {
-        listLogs.add(new LogResponse("1", "Coucou", new Date(), "", "", "", "", "", ""));
+    public List<LogResponse> giveLogList() throws IOException {
+
+        connect();
+
+        SearchResponse response = connection.getTc().prepareSearch().execute().actionGet();
+
+        SearchHit[] results = response.getHits().getHits();
+        for(SearchHit hit : results){
+
+            String sourceAsString = hit.getSourceAsString();
+            Long id = hit.field("id").<Long>getValue();
+        }
+
+        closeConnection();
+
         return listLogs;
     }
 
@@ -41,16 +57,15 @@ public class LogService {
         connection.setServer(server);
         connection.setPort(port);
 
-        TransportClient tc = new PreBuiltTransportClient(Settings.EMPTY)
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(connection.getServer()), connection.getPort()));
+        connect();
+        closeConnection();
     }
 
     public List<String> listIndices() {
         try {
-            TransportClient tc = new PreBuiltTransportClient(Settings.EMPTY)
-                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(connection.getServer()), connection.getPort()));
+            connect();
 
-            GetSettingsResponse response = tc.admin().indices().prepareGetSettings().get();
+            GetSettingsResponse response = connection.getTc().admin().indices().prepareGetSettings().get();
             List<String> lstIndexes = new ArrayList<String>();
             for (ObjectObjectCursor<String, Settings> cursor : response.getIndexToSettings()) {
                 lstIndexes.add(cursor.key);
@@ -58,7 +73,54 @@ public class LogService {
             return lstIndexes;
         } catch (UnknownHostException e) {
             e.printStackTrace();
+        } finally {
+            closeConnection();
         }
         return null;
+    }
+
+    public LogResponse logDetail(String index, String id) throws UnknownHostException {
+        connect();
+
+        GetResponse reponse = connection.getTc().prepareGet(index, "log", id).get();
+
+        Map<String, String> trad = cleanKeyNames(reponse.getSourceAsMap());
+
+        ObjectMapper om = new ObjectMapper();
+        LogResponse result = om.convertValue(trad, LogResponse.class);
+
+        result.setId(reponse.getId());
+        result.setIndex(reponse.getIndex());
+
+        closeConnection();
+
+        return result;
+    }
+
+    private Map<String, String> cleanKeyNames(Map<String, Object> theMap) {
+        Set<String> keyList = theMap.keySet();
+        Map<String, String> retour = new HashMap<>();
+
+        for (String key:keyList) {
+            String newKey = key;
+            if(key.contains("@")) {
+                newKey = key.replace("@", "");
+            }
+
+            if(key.contains("_")) {
+                newKey = key.replace("_", "");
+            }
+            retour.put(newKey, theMap.get(key).toString());
+        }
+        return retour;
+    }
+
+    private void connect() throws UnknownHostException {
+        connection.setTc(new PreBuiltTransportClient(Settings.EMPTY)
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(connection.getServer()), connection.getPort())));
+    }
+
+    private void closeConnection() {
+        connection.getTc().close();
     }
 }

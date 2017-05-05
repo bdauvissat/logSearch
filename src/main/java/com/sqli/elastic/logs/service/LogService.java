@@ -2,24 +2,21 @@ package com.sqli.elastic.logs.service;
 
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sqli.elastic.logs.structure.Connection;
+import com.sqli.elastic.logs.component.Connection;
 import com.sqli.elastic.logs.structure.LogResponse;
+import com.sqli.elastic.logs.tools.ToolBox;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.*;
 
 /**
@@ -35,35 +32,17 @@ public class LogService {
         return listLogs.size();
     }
 
-    public List<LogResponse> giveLogList() throws IOException {
-
-        connect();
-
-        SearchResponse response = connection.getTc().prepareSearch().execute().actionGet();
-
-        SearchHit[] results = response.getHits().getHits();
-        for(SearchHit hit : results){
-
-            String sourceAsString = hit.getSourceAsString();
-            Long id = hit.field("id").<Long>getValue();
-        }
-
-        closeConnection();
-
-        return listLogs;
-    }
-
     public void checkConnection(String server, Integer port) throws UnknownHostException {
         connection.setServer(server);
         connection.setPort(port);
 
-        connect();
-        closeConnection();
+        connection.openConnection();
+        connection.closeConnection();
     }
 
     public List<String> listIndices() {
         try {
-            connect();
+            connection.openConnection();
 
             GetSettingsResponse response = connection.getTc().admin().indices().prepareGetSettings().get();
             List<String> lstIndexes = new ArrayList<String>();
@@ -74,17 +53,17 @@ public class LogService {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } finally {
-            closeConnection();
+            connection.closeConnection();
         }
         return null;
     }
 
     public LogResponse logDetail(String index, String id) throws UnknownHostException {
-        connect();
+        connection.openConnection();
 
         GetResponse reponse = connection.getTc().prepareGet(index, "log", id).get();
 
-        Map<String, String> trad = cleanKeyNames(reponse.getSourceAsMap());
+        Map<String, String> trad = ToolBox.cleanKeyNames(reponse.getSourceAsMap());
 
         ObjectMapper om = new ObjectMapper();
         LogResponse result = om.convertValue(trad, LogResponse.class);
@@ -92,35 +71,40 @@ public class LogService {
         result.setId(reponse.getId());
         result.setIndex(reponse.getIndex());
 
-        closeConnection();
+        connection.closeConnection();
 
         return result;
     }
 
-    private Map<String, String> cleanKeyNames(Map<String, Object> theMap) {
-        Set<String> keyList = theMap.keySet();
-        Map<String, String> retour = new HashMap<>();
+    public List<LogResponse> searchLogs(String indexName, LocalDateTime fromDate, LocalDateTime toDate) throws IOException {
+        List<LogResponse> retour = new ArrayList<>();
 
-        for (String key:keyList) {
-            String newKey = key;
-            if(key.contains("@")) {
-                newKey = key.replace("@", "");
-            }
+        connection.openConnection();
 
-            if(key.contains("_")) {
-                newKey = key.replace("_", "");
+        fromDate = LocalDateTime.of(2015,12,03,11,35);
+        toDate = LocalDateTime.of(2015,12,03,11,45);
+
+        SearchResponse reponse = connection.getTc().prepareSearch("maximo.log*")
+                .setSize(50)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(QueryBuilders.rangeQuery("@timestamp").from(fromDate.toString()).to(toDate.toString()))
+                .get();
+        SearchHit[] results = reponse.getHits().getHits();
+        connection.closeConnection();
+
+        for(SearchHit hit : results){
+
+            String sourceAsString = hit.getSourceAsString();
+            if (sourceAsString != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                LogResponse rep = mapper.readValue(sourceAsString, LogResponse.class);
+                rep.setId(hit.getId());
+                rep.setIndex(hit.getIndex());
+                retour.add(rep);
             }
-            retour.put(newKey, theMap.get(key).toString());
         }
+
         return retour;
     }
 
-    private void connect() throws UnknownHostException {
-        connection.setTc(new PreBuiltTransportClient(Settings.EMPTY)
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(connection.getServer()), connection.getPort())));
-    }
-
-    private void closeConnection() {
-        connection.getTc().close();
-    }
 }

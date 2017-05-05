@@ -2,9 +2,12 @@ package com.sqli.elastic.logs.structure;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
+import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Created by Benjamin on 22/01/2017.
@@ -35,6 +38,7 @@ public class LogResponse {
         this.timestamp = timestamp;
     }
 
+    @JsonProperty("@timestamp")
     public void setTimestamp(String timestamp) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         setTimestamp(LocalDateTime.parse(timestamp, formatter));

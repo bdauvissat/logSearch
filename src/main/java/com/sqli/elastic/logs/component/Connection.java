@@ -1,8 +1,12 @@
-package com.sqli.elastic.logs.structure;
+package com.sqli.elastic.logs.component;
 
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
-import java.util.List;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Created by Benjamin on 21/04/2017.
@@ -12,6 +16,15 @@ public class Connection {
     private String server;
     private Integer port;
     private TransportClient tc;
+
+    public void openConnection() throws UnknownHostException {
+        setTc(new PreBuiltTransportClient(Settings.EMPTY)
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(getServer()), getPort())));
+    }
+
+    public void closeConnection() {
+        getTc().close();
+    }
 
     public String getServer() {
         return server;

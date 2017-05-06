@@ -48,8 +48,8 @@ public class LogController {
         return logService.logDetail(index,id);
     }
 
-    @RequestMapping("searchlog")
-    public List<LogResponse> searchLog() throws IOException {
-        return logService.searchLogs("", null, null);
+    @RequestMapping("searchlog/{index}/{dateFrom}/{dateTo}")
+    public List<LogResponse> searchLog(@PathVariable String index, @PathVariable String dateFrom, @PathVariable String dateTo) throws IOException {
+        return logService.searchLogs(index, dateFrom, dateTo);
     }
 }

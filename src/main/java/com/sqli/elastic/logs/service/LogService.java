@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -25,12 +24,7 @@ import java.util.*;
 @Service
 public class LogService {
 
-    private List<LogResponse> listLogs = new ArrayList<LogResponse>();
     private Connection connection = new Connection();
-
-    public int countLines() {
-        return listLogs.size();
-    }
 
     public void checkConnection(String server, Integer port) throws UnknownHostException {
         connection.setServer(server);
@@ -76,18 +70,15 @@ public class LogService {
         return result;
     }
 
-    public List<LogResponse> searchLogs(String indexName, LocalDateTime fromDate, LocalDateTime toDate) throws IOException {
+    public List<LogResponse> searchLogs(String indexName, String fromDate, String toDate) throws IOException {
         List<LogResponse> retour = new ArrayList<>();
 
         connection.openConnection();
 
-        fromDate = LocalDateTime.of(2015,12,03,11,35);
-        toDate = LocalDateTime.of(2015,12,03,11,45);
-
-        SearchResponse reponse = connection.getTc().prepareSearch("maximo.log*")
+        SearchResponse reponse = connection.getTc().prepareSearch(indexName)
                 .setSize(50)
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.rangeQuery("@timestamp").from(fromDate.toString()).to(toDate.toString()))
+                .setQuery(QueryBuilders.rangeQuery("@timestamp").from(fromDate).to(toDate))
                 .get();
         SearchHit[] results = reponse.getHits().getHits();
         connection.closeConnection();

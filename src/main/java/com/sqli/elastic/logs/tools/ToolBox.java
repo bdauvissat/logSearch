@@ -9,20 +9,12 @@ import java.util.Set;
  */
 public abstract class ToolBox {
 
-    public final static Map<String, String> cleanKeyNames(Map<String, Object> theMap) {
+    public static final Map<String, String> cleanKeyNames(Map<String, Object> theMap) {
         Set<String> keyList = theMap.keySet();
         Map<String, String> retour = new HashMap<>();
 
         for (String key:keyList) {
-            String newKey = key;
-            if(key.contains("@")) {
-                newKey = key.replace("@", "");
-            }
-
-            if(key.contains("_")) {
-                newKey = key.replace("_", "");
-            }
-            retour.put(newKey, theMap.get(key).toString());
+            retour.put(key.replace("@", "").replace("_", ""), theMap.get(key).toString());
         }
         return retour;
     }

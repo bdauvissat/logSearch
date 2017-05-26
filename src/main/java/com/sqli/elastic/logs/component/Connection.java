@@ -4,22 +4,26 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Benjamin on 21/04/2017.
  */
+@Component
 public class Connection {
 
-    private String server;
-    private Integer port;
-    private TransportClient tc;
+    private static final String SERVER = "server";
+    private static final String PORT = "port";
+    private static final String TC = "connexion";
+    private ConcurrentHashMap<String, Object> chConnexion = new ConcurrentHashMap<>();
 
     public void openConnection() throws UnknownHostException {
         setTc(new PreBuiltTransportClient(Settings.EMPTY)
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(getServer()), getPort())));
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(getServer()), Integer.valueOf(getPort()))));
     }
 
     public void closeConnection() {
@@ -27,26 +31,39 @@ public class Connection {
     }
 
     public String getServer() {
-        return server;
+
+        if (chConnexion.containsKey(SERVER)) {
+            return chConnexion.get(SERVER).toString();
+        }
+        return null;
     }
 
     public void setServer(String server) {
-        this.server = server;
+        this.chConnexion.put(SERVER, server);
     }
 
-    public Integer getPort() {
-        return port;
+    public String getPort() {
+        if (chConnexion.containsKey(PORT)) {
+            return chConnexion.get(PORT).toString();
+        }
+        return null;
     }
 
-    public void setPort(Integer port) {
-        this.port = port;
+    public void setPort(String port) {
+
+        this.chConnexion.put(PORT, port);
     }
 
     public TransportClient getTc() {
-        return tc;
+
+        if (chConnexion.containsKey(TC)) {
+            return (TransportClient) chConnexion.get(TC);
+        }
+        return null;
     }
 
     public void setTc(TransportClient tc) {
-        this.tc = tc;
+
+        this.chConnexion.put(TC, tc);
     }
 }

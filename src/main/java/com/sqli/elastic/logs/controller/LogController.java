@@ -23,7 +23,7 @@ public class LogController {
     private LogService logService;
 
     @RequestMapping("/checkConnection/{server}/{port}")
-    public String checkConnection(@PathVariable String server, @PathVariable Integer port) {
+    public String checkConnection(@PathVariable String server, @PathVariable String port) {
         String retour = "OK";
         try {
             logService.checkConnection(server, port);
@@ -37,10 +37,6 @@ public class LogController {
     @RequestMapping("/listIndexes")
     public List<String> listIndexes() {
         return logService.listIndices();
-    }
-
-    public List<LogResponse> listLogs(Date dateDebut, Date dateFin, String index, String logLevel) {
-        return null;
     }
 
     @RequestMapping("/logDetail/{index}/{id}")

@@ -26,7 +26,7 @@ public class LogService {
 
     private Connection connection = new Connection();
 
-    public void checkConnection(String server, Integer port) throws UnknownHostException {
+    public void checkConnection(String server, String port) throws UnknownHostException {
         connection.setServer(server);
         connection.setPort(port);
 
